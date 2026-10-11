@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#111827">
+<title>C-26 AIML Study App v2</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f3f4f6;color:#111827}
+header{background:#111827;color:#fff;padding:18px 14px;position:sticky;top:0;z-index:5}
+header h1{margin:0;font-size:21px}header p{margin:5px 0 0;color:#d1d5db;font-size:13px}
+nav{display:flex;gap:7px;overflow:auto;padding:9px 0}nav button{white-space:nowrap}
+button{border:0;border-radius:10px;padding:10px 12px;background:#fff;box-shadow:0 1px 4px #0002;font-weight:600}
+nav button.active{background:#374151;color:white}.wrap{max-width:900px;margin:auto;padding:12px}
+input,select{width:100%;padding:12px;border:1px solid #d1d5db;border-radius:10px;font-size:15px;background:white}
+.card{background:white;border-radius:14px;padding:15px;margin:10px 0;box-shadow:0 2px 8px #0001}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px}
+.subject{text-align:left;min-height:82px}.subject small{color:#6b7280}.tag{display:inline-block;background:#e5e7eb;padding:4px 8px;border-radius:15px;font-size:11px;margin:2px}
+h2{font-size:19px;margin:4px 0 10px}h3{font-size:16px;margin:8px 0}
+p,li{line-height:1.5}.note{border-left:4px solid #6b7280;padding-left:10px}
+.answer{display:none;margin-top:8px;padding:9px;background:#f3f4f6;border-radius:8px}.answer.show{display:block}
+.progress{height:10px;background:#e5e7eb;border-radius:8px;overflow:hidden}.bar{height:100%;background:#374151}
+.stat{font-size:26px;font-weight:700}.muted{color:#6b7280;font-size:13px}
+table{width:100%;border-collapse:collapse}td,th{border:1px solid #e5e7eb;padding:8px;text-align:left;font-size:13px}
+hr{border:0;border-top:1px solid #e5e7eb;margin:14px 0}
+</style>
+</head>
+<body>
+<header><h1>📚 C-26 AIML — 1st Year Study App v2</h1><p>Learn • Practise • Quiz • Track your progress</p>
+<nav id="nav"></nav></header>
+<div class="wrap">
+<div id="app"></div>
+</div>
+
+<script>
+const subjects=[
+{id:"eng",name:"English Essentials",code:"26AM101T",units:[
+["Exploring English","Reading skills, sounds and spelling, parts of speech, articles and prepositions.","Know the 8 parts of speech: noun, pronoun, verb, adjective, adverb, preposition, conjunction and interjection.","Explain the eight parts of speech with examples."],
+["The Better You!","Dialogue writing, synonyms, antonyms, word order and verbs.","A synonym has a similar meaning; an antonym has an opposite meaning.","Write a short dialogue and identify synonyms/antonyms."],
+["Drive to Destiny!","Paragraph writing, homophones, homonyms, homographs, subject-verb agreement and tenses.","Subject-verb agreement means the verb must agree with its subject in number/person.","Correct common subject-verb agreement errors."],
+["Renew, Rewire & Resolve!","E-mail writing, roots, affixes and kinds of sentences.","A prefix comes before a root; a suffix comes after it.","Write a formal email with subject, greeting, body and closing."],
+["Brains & Bots","Process description, phrasal verbs, active/passive voice, robotics and AI.","Active voice focuses on the doer; passive voice focuses on the action/object.","Change simple active sentences into passive voice."],
+["The Blue Planet: Mend or End!","Letter writing, one-word substitutes, comparison and sustainability.","Sustainability means meeting present needs without damaging future generations' ability to meet theirs.","Prepare a short answer on environmental sustainability."],
+["One World – One Dream","Essay writing, abbreviations, reported speech and inclusivity.","Reported speech conveys what someone said without quoting the exact words.","Convert direct speech to reported speech."],
+["The Net Norms","Note-making, summarizing, informal language and sentence synthesis.","A summary gives the main ideas briefly without unnecessary detail.","Make notes from a short passage using headings and subpoints."],
+["Managing Moods & Moments","Report writing, usage, error analysis, stress and time management.","A report presents information in a clear, organized form.","Prepare a simple report with title, findings and conclusion."]
+]},
+{id:"math",name:"Engineering Mathematics-I",code:"26AM102T",units:[
+["Partial Fractions","Resolve rational expressions into simpler fractions.","For a proper fraction with distinct linear factors, use A/(x-a)+B/(x-b)+... and solve for constants.","Example: 1/((x-1)(x+2)) = A/(x-1)+B/(x+2)."],
+["Matrices & Determinants","Types, operations, transpose, determinant, adjoint, inverse and Cramer's rule.","For A=[[a,b],[c,d]], det(A)=ad-bc. If det(A)≠0, A⁻¹=1/det(A)[[d,-b],[-c,a]].","Find the determinant and inverse of a 2×2 matrix."],
+["Trigonometric Ratios","Ratios, standard angles, graphs and periodicity.","sinθ=opposite/hypotenuse, cosθ=adjacent/hypotenuse, tanθ=opposite/adjacent.","Memorize standard values for 0°, 30°, 45°, 60°, 90°."],
+["Compound Angles","sin(A±B), cos(A±B), tan(A±B).","sin(A+B)=sinA cosB+cosA sinB.","Use compound-angle identities to simplify expressions."],
+["Multiple & Sub-multiple Angles","2A, 3A and A/2 formulae.","sin2A=2sinAcosA; cos2A=cos²A−sin²A.","Derive/use a double-angle identity."],
+["Transformations","Products ↔ sums/differences.","2sinAcosB=sin(A+B)+sin(A−B).","Convert a product of trig functions into a sum."],
+["Inverse Trigonometric Functions","Definitions, domains, ranges and identities.","Inverse trig functions return an angle from a ratio, e.g. sin⁻¹(x).","State the principal range of sin⁻¹x."],
+["Trigonometric Equations","General solutions of basic trig equations.","sin x=0 gives x=nπ; tan x=0 gives x=nπ.","Solve a basic trigonometric equation."],
+["Properties of Triangles","Sine rule, cosine rule, tangent rule and area.","a/sinA=b/sinB=c/sinC.","Choose sine rule or cosine rule from the given data."],
+["Complex Numbers","Modulus, conjugate, amplitude and polar/Euler forms.","For z=a+ib, |z|=√(a²+b²), and conjugate is a−ib.","Find modulus and conjugate of a complex number."],
+["Hyperbolic Functions","Basic and inverse hyperbolic functions.","sinhx=(e^x−e^-x)/2; coshx=(e^x+e^-x)/2.","Evaluate a basic hyperbolic expression."],
+["Straight Lines","Different line forms, angle and distance.","Slope m=(y₂−y₁)/(x₂−x₁). Point-slope form: y−y₁=m(x−x₁).","Find the equation of a line from a point and slope."],
+["Circles","Locus, centre, radius and equations.","(x−h)²+(y−k)²=r² has centre (h,k) and radius r.","Identify centre and radius from a circle equation."],
+["Conic Sections","Conic definition, focus, directrix, eccentricity and parabola.","Standard parabola y²=4ax has focus (a,0) and directrix x=−a.","Identify the focus of y²=4ax."],
+["Limits & Continuity","Limits, standard limits and continuity.","A function is continuous at a point when its limit equals its function value there.","Evaluate simple standard limits."],
+["Differentiation","Rules, implicit/parametric/log differentiation, maxima/minima and partial derivatives.","d(x^n)/dx=nx^(n−1). Product rule: (uv)'=u'v+uv'.","Differentiate a polynomial using the power rule."],
+["Indefinite Integration","Antiderivatives, substitution and integration by parts.","∫x^n dx=x^(n+1)/(n+1)+C for n≠−1.","Integrate a simple polynomial."],
+["Definite Integration","Fundamental theorem and properties.","∫a^b f(x)dx=F(b)−F(a) when F'=f.","Evaluate a simple definite integral."]
+]},
+{id:"phy",name:"Engineering Physics",code:"26AM103T",units:[
+["Units & Measurements","SI units, least count, accuracy and errors.","Percentage error = (absolute error/true value)×100.","Distinguish accuracy from precision."],
+["Elements of Vectors","Scalars, vectors, resolution, dot and cross products.","A·B=ABcosθ; |A×B|=ABsinθ.","Find the angle between two vectors using dot product."],
+["Mechanics","Momentum, force, torque, motion, projectile and pendulum.","F=ma; p=mv; torque τ=r×F.","Apply Newton's second law to a simple problem."],
+["Astrodynamics","Gravitation, Kepler's laws, orbital and escape velocity.","Escape velocity from a spherical body: ve=√(2GM/R).","State Kepler's laws."],
+["Energy & Thermal Physics","Work, power, energy, gas laws and PV=nRT.","Power = work/time. Ideal gas equation: PV=nRT.","Solve a simple ideal-gas problem."],
+["Acoustics","Waves, sound, noise, echo, reverberation and Sabine's formula.","Echo is a reflected sound heard separately from the original sound.","List methods of reducing noise pollution."],
+["Electricity & Magnetism","Ohm's law, resistance, resistivity, Kirchhoff and magnetic basics.","V=IR; R=ρL/A.","Calculate current from voltage and resistance."],
+["Modern Physics","Photoelectric effect, optical fibre, superconductivity and nanotechnology.","Photon energy E=hν. Photoelectric effect supports the particle nature of light.","Explain the basic idea of the photoelectric effect."]
+]},
+{id:"chem",name:"Engineering Chemistry & Environmental Studies",code:"26AM104T",units:[
+["Basic Chemistry","Atomic structure, quantum numbers, bonding and redox.","Atomic number is the number of protons in the nucleus.","Write an electronic configuration for a simple atom."],
+["Solutions, Acids & Bases","Mole concept, molarity, normality and pH.","Molarity M = moles of solute/litres of solution. pH=−log[H⁺].","Calculate pH of a simple strong acid solution."],
+["Electrochemistry","Electrolysis, electrode potential, cells and batteries.","Oxidation occurs at the anode; reduction occurs at the cathode.","Distinguish galvanic and electrolytic cells."],
+["Corrosion","Causes, rusting and prevention.","Corrosion is deterioration of a material through chemical/electrochemical reaction with its environment.","List two methods of corrosion prevention."],
+["Water Treatment","Hardness, ion exchange, reverse osmosis and municipal treatment.","Hard water contains significant Ca²⁺/Mg²⁺ ions.","Explain why water is softened."],
+["Polymers & Materials","Polymerization, PVC, Nylon, biodegradable polymers, alloys, graphene and nanotubes.","A polymer is a large molecule made from repeating monomer units.","Give examples of natural and synthetic polymers."],
+["Fuels & Alternative Energy","LPG, CNG, power alcohol, renewable energy and hydrogen.","Renewable energy sources are naturally replenished on a human timescale.","Compare renewable and non-renewable sources."],
+["Environmental Studies","Pollution, climate change, ozone, acid rain, e-waste and sustainability.","The 3Rs are Reduce, Reuse and Recycle.","Suggest practical ways to reduce e-waste."]
+]},
+{id:"python",name:"Python Programming",code:"26AM105T",units:[
+["Introduction to Python","Variables, data types, input/output, operators, modules and functions.","Python uses indentation to define blocks. Example: print('Hello').","Write a program that asks for a name and prints a greeting."],
+["Control Flow & Loops","if/elif/else, for, while, break, continue and pass.","Use if for decisions and loops for repetition.","Write a program to test whether a number is even or odd."],
+["Functions & Arrays","Arguments, return values, scope, strings and arrays.","A function groups reusable code. Example: def add(a,b): return a+b.","Create a function that returns the square of a number."],
+["Data Structures","Lists, tuples, dictionaries, sets and comprehensions.","List: ordered and mutable. Tuple: ordered and immutable. Dictionary: key-value pairs. Set: unique elements.","Choose the correct data structure for storing student marks."],
+["OOP, Libraries & Files","Classes, objects, inheritance, Turtle, Random, Datetime, CSV, NumPy, Pandas, files and exceptions.","A class is a blueprint; an object is an instance of a class.","Create a simple Student class with a name attribute."]
+]},
+{id:"coding",name:"Coding Fundamentals",code:"26AM106A",units:[
+["Computer Fundamentals","Hardware, software, firmware, CPU, memory, storage and binary.","Hardware is physical; software is a set of instructions.","Classify CPU, RAM and SSD as hardware components."],
+["Programming Methodology","Problem solving, algorithms, programs and flowcharts.","An algorithm is a finite step-by-step procedure for solving a problem.","Write an algorithm for finding the largest of two numbers."],
+["Introduction to Coding","Pseudocode, variables, data types, operators, conditions, loops and bugs.","Pseudocode describes logic without requiring exact programming syntax.","Convert a simple algorithm into pseudocode."],
+["Functions","Functions, parameters, return values, events and event handlers.","Parameters receive input; return sends a result back.","Explain why functions improve code reuse."],
+["Arrays & Collections","Collections, arrays, iteration and modification.","Iteration means processing items one by one.","Write steps to find the largest item in a collection."]
+]},
+{id:"pylab",name:"Python Programming Lab",code:"26AM107L",units:[
+["Basics & Operators","Hello World, data types, conversions, arithmetic, primes, unit and geometry calculations.","Start with input → process → output.","Program Celsius to Fahrenheit conversion."],
+["Control Structures","Odd/even, greatest of three, factorial and tables.","Use conditions for choices and loops for repetition.","Write a factorial program using a loop."],
+["Functions & Recursion","Functions, recursion, modules and strings.","Recursion means a function calls itself with a smaller/subproblem until a base case.","Write Fibonacci using a function."],
+["Data Structures","Lists, tuples, dictionaries, statistics and data manipulation.","Use len(), sum(), min(), max() where appropriate.","Find the average of a list of marks."],
+["OOP, Libraries & Files","File I/O, classes, Pandas CSV and NumPy arrays.","with open(...) safely manages file resources.","Read lines from a text file and count them."]
+]},
+{id:"hardware",name:"Computer Hardware Lab",code:"26AM108L",units:[
+["Hardware Basics","Components, CMOS, motherboard, PC assembly and disassembly.","Always power down and follow safe handling procedures before physical work.","Identify CPU, RAM, storage, PSU and motherboard."],
+["Motherboard","Connectors, RAM/CPU/HDD installation, form factors and SMPS concepts.","The motherboard connects major components and provides communication paths.","Identify common motherboard connectors."],
+["Hard Disk","IDE/SCSI/SATA/PATA, partitions, formatting and storage capacity.","A partition divides a physical storage device into logical sections.","Explain the difference between a disk and a partition."],
+["Operating System","Installation concepts, drivers, applications, printer and display settings.","A device driver helps the OS communicate with hardware.","Explain why drivers are needed."],
+["Troubleshooting","Safe troubleshooting, visual checks, error codes and common component issues.","Troubleshooting should be systematic: observe → isolate → test → fix → verify.","Describe a safe troubleshooting sequence."]
+]}
+];
+
+const quizzes=[
+["math","What is det(A) for [[1,2],[3,4]]?",["-2","2","10","0"],0],
+["python","Which symbol starts a comment in Python?",["//","#","<!--",";"],1],
+["phy","Ohm's law is:",["P=VI","V=IR","F=ma","E=mc²"],1],
+["chem","pH is defined as:",["log[H+]","−log[H+]","[OH−]","1/[H+]"],1],
+["coding","Which is a problem-solving step?",["Algorithm","Wallpaper","Battery","Browser"],0],
+["eng","Which is a synonym of 'rapid'?",["slow","quick","late","weak"],1],
+["pylab","Which function gives the number of items in a list?",["countall()","size()","len()","items()"],2],
+["hardware","RAM is primarily:",["volatile memory","permanent storage","a CPU","a cable"],0]
+];
+
+const notes = {
+math:"Calculator tip: for exam practice, learn the formula first, then substitute carefully. Keep exact forms such as √37 when appropriate; convert to decimals only when the question asks.",
+python:"Beginner path: print → variables → input → operators → if → loops → functions → lists/dictionaries → files → classes.",
+phy:"For numericals: write Given → Formula → Substitution → Answer with unit.",
+chem:"For chemistry answers: definition → principle/equation → explanation → example/application.",
+eng:"For writing questions: plan the points first, then write with clear paragraphs and correct grammar.",
+coding:"Think in Input → Process → Output. Write an algorithm before writing code.",
+pylab:"Type and run every program yourself. Change the input values and predict the output before running.",
+hardware:"For physical hardware work, follow your teacher/lab instructions and power-safety procedures."
+};
+
+let current="home", progress=JSON.parse(localStorage.getItem("c26progress")||"{}");
+
+function save(){localStorage.setItem("c26progress",JSON.stringify(progress))}
+function setDone(key){progress[key]=!progress[key];save();render()}
+function subj(id){return subjects.find(s=>s.id===id)}
+
+function renderNav(){
+document.getElementById("nav").innerHTML=[
+["home","🏠 Home"],["subjects","📚 Subjects"],["quiz","🧠 MCQ Quiz"],["progress","📈 Progress"]
+].map(x=>`<button class="${current==x[0]?'active':''}" onclick="go('${x[0]}')">${x[1]}</button>`).join("");
+}
+function go(x){current=x;render()}
+function render(){
+renderNav();let a=document.getElementById("app");
+if(current==="home"){a.innerHTML=`<div class="card"><h2>👋 Welcome!</h2><p>This version is designed for a first-year beginner. Study one unit, mark it complete, then practise the MCQs.</p><div class="grid">
+<button onclick="go('subjects')">📚 Start studying</button><button onclick="go('quiz')">🧠 Take quiz</button><button onclick="go('progress')">📈 View progress</button></div></div>
+<div class="card"><h3>Recommended order</h3><p><b>Coding Fundamentals → Python Programming → Python Lab</b>, while doing Mathematics, Physics, Chemistry and English alongside them.</p><p class="muted">Your progress is stored locally in your browser.</p></div>
+<div class="card"><h3>📌 Exam method</h3><ol><li>Understand the concept.</li><li>Write the formula/definition from memory.</li><li>Solve one example.</li><li>Practise without looking at the answer.</li><li>Revise the same topic later.</li></ol></div>`}
+if(current==="subjects"){a.innerHTML=`<input id="filter" placeholder="🔎 Search subject or topic..." oninput="filterSubjects()"><div id="subjectgrid" class="grid" style="margin-top:10px"></div>`;drawSubjects(subjects)}
+if(current.startsWith("s:"))renderSubject(current.slice(2));
+if(current==="quiz")renderQuiz();
+if(current==="progress")renderProgress();
+}
+function drawSubjects(list){
+document.getElementById("subjectgrid").innerHTML=list.map(s=>`<button class="subject" onclick="go('s:${s.id}')"><b>${s.name}</b><br><small>${s.code}</small><br><span class="tag">${s.units.length} units</span></button>`).join("");
+}
+function filterSubjects(){
+let q=document.getElementById("filter").value.toLowerCase();drawSubjects(subjects.filter(s=>(s.name+" "+s.code+" "+s.units.flat().join(" ")).toLowerCase().includes(q)))
+}
+function renderSubject(id){
+let s=subj(id), done=s.units.filter((_,i)=>progress[s.id+"-"+i]).length;
+document.getElementById("app").innerHTML=`<div class="card"><h2>${s.name}</h2><span class="tag">${s.code}</span><span class="tag">${done}/${s.units.length} completed</span><div class="progress"><div class="bar" style="width:${done/s.units.length*100}%"></div></div></div>
+<div class="card note"><b>⭐ Study tip:</b> ${notes[s.id]}</div>
+${s.units.map((u,i)=>`<div class="card"><h3>${i+1}. ${u[0]}</h3><p><b>What to learn:</b> ${u[1]}</p><p><b>Key idea:</b> ${u[2]}</p><p><b>Practice:</b> ${u[3]}</p><button onclick="setDone('${s.id}-${i}')">${progress[s.id+"-"+i]?"✅ Completed":"☐ Mark complete"}</button></div>`).join("")}`;
+}
+function renderQuiz(){
+let score=progress.quizScore||0,total=progress.quizTotal||0;
+document.getElementById("app").innerHTML=`<div class="card"><h2>🧠 Quick MCQ Quiz</h2><p>Choose an answer, then tap Show Answer. Your score is saved on this device.</p><p><b>Score:</b> ${score}/${total}</p></div>
+${quizzes.map((q,i)=>`<div class="card"><h3>${i+1}. ${q[1]}</h3>${q[2].map((x,j)=>`<button style="display:block;width:100%;margin:6px 0;text-align:left" onclick="answer(${i},${j})">${String.fromCharCode(65+j)}. ${x}</button>`).join("")}<div id="ans${i}" class="answer"><b>Correct answer:</b> ${String.fromCharCode(65+q[3])}. ${q[2][q[3]]}</div></div>`).join("")}`;
+}
+function answer(i,j){
+let q=quizzes[i], key="quiz-"+i;
+if(progress[key])return;
+progress[key]=true;progress.quizTotal=(progress.quizTotal||0)+1;
+if(j===q[3])progress.quizScore=(progress.quizScore||0)+1;
+save();document.getElementById("ans"+i).classList.add("show");renderQuiz();
+}
+function renderProgress(){
+let total=subjects.reduce((n,s)=>n+s.units.length,0),done=subjects.reduce((n,s)=>n+s.units.filter((_,i)=>progress[s.id+"-"+i]).length,0);
+document.getElementById("app").innerHTML=`<div class="card"><h2>📈 Your Progress</h2><div class="stat">${done}/${total}</div><p class="muted">units completed</p><div class="progress"><div class="bar" style="width:${done/total*100}%"></div></div><p>${Math.round(done/total*100)}% complete</p></div>
+${subjects.map(s=>{let d=s.units.filter((_,i)=>progress[s.id+"-"+i]).length;return `<div class="card"><b>${s.name}</b><p class="muted">${d}/${s.units.length} units</p><div class="progress"><div class="bar" style="width:${d/s.units.length*100}%"></div></div></div>`}).join("")}
+<div class="card"><h3>Quiz</h3><p>${progress.quizScore||0}/${progress.quizTotal||0} correct answers</p><button onclick="resetProgress()">Reset all progress</button></div>`;
+}
+function resetProgress(){if(confirm("Reset all saved progress?")){progress={};save();render()}}
+render();
+</script>
+</body>
+</html>
